@@ -13,13 +13,28 @@ class Course extends React.Component {
 
     this.state = {
       course: '',
-      name: localStorage.getItem('courseName'),
+      error: '',
+      name: '',
       term: '',
       professor: '',
       question: '',
       sidebar: {},
       reviews: [],
     };
+  }
+
+  componentDidMount(props) {
+    const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
+    const splittedArray = this.props.match.params.courseId.match(regex);
+    this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}` });
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.match.params.courseId !== this.props.match.params.courseId) {
+      const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
+      const splittedArray = nextProps.match.params.courseId.match(regex);
+      this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}` });
+    }
   }
 
   searchCourse = () => {
@@ -29,15 +44,28 @@ class Course extends React.Component {
     const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
     const splittedArray = course.match(regex);
 
-    const courseName = splittedArray[0];
-    const courseNum = splittedArray[1];
+    const possibleCourseNum = [1, 10, 30, 31];
 
-    console.log(`${courseName} ${parseInt(courseNum, 10)}`);
+    const courseName = splittedArray[0].toUpperCase();
+    const courseNum = parseInt(splittedArray[1], 10);
 
-    localStorage.setItem('courseName', `${courseName.toUpperCase()} ${courseNum}`);
+    console.log(courseNum);
 
-    history.push(`/course/${courseName + courseNum}`);
+    if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
+      this.setState({ error: 'Please enter a valid course' });
+    } else {
+      this.setState({ course: '', error: '' });
+      history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
+    }
   };
+
+  zeroFill = (number) => {
+    const width = 3 - number.toString().length;
+    if (width > 0) {
+      return new Array(width + (/\./.test(number) ? 2 : 1)).join('0') + number;
+    }
+    return `${number}`; // always return a string
+  }
 
   updateFilter = (e) => {
     console.log(e.target.name);
@@ -96,14 +124,19 @@ class Course extends React.Component {
 
   render() {
     const {
-      course, name, professor, term, question,
+      course, name, professor, term, question, error,
     } = this.state;
     return (
       <div id="courseMain">
         <div className="rFlex">
           <Form>
             <Form.Label>See evaluations for</Form.Label>
-            <Form.Control id="searchbar_long" type="text" placeholder="Enter course" value={course} onChange={c => this.setState({ course: c.target.value })} />
+            <div>
+              <Form.Control id="searchbar_long" type="text" placeholder="Enter course" value={course} onChange={c => this.setState({ course: c.target.value })} isInvalid={!!error} />
+              <Form.Control.Feedback type="invalid">
+                {error}
+              </Form.Control.Feedback>
+            </div>
           </Form>
           <button id="courseArrow" type="submit" onClick={this.searchCourse}><SVG src={Arrow} /></button>
         </div>

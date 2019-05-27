@@ -12,6 +12,7 @@ class Home extends React.Component {
 
     this.state = {
       course: '',
+      error: '',
     };
   }
 
@@ -22,25 +23,40 @@ class Home extends React.Component {
     const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
     const splittedArray = course.match(regex);
 
-    const courseName = splittedArray[0];
-    const courseNum = splittedArray[1];
+    const possibleCourseNum = [1, 10, 30, 31];
 
-    console.log(`${courseName} ${parseInt(courseNum, 10)}`);
+    const courseName = splittedArray[0].toUpperCase();
+    const courseNum = parseInt(splittedArray[1], 10);
 
-    localStorage.setItem('courseName', `${courseName.toUpperCase()} ${courseNum}`);
-
-    history.push(`/course/${courseName + courseNum}`);
+    if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
+      this.setState({ error: 'Please enter a valid course' });
+    } else {
+      history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
+    }
   };
 
+  zeroFill = (number) => {
+    const width = 3 - number.toString().length;
+    if (width > 0) {
+      return new Array(width + (/\./.test(number) ? 2 : 1)).join('0') + number;
+    }
+    return `${number}`; // always return a string
+  }
+
   render() {
-    const { course } = this.state;
+    const { course, error } = this.state;
 
     return (
       <div id="landing">
         <h1 id="site_name"> Course Evaluation Explorer </h1>
         <div id="search">
           <h4 id="landing_text"> I want to see evaluations for </h4>
-          <Form.Control id="searchbar" type="text" placeholder="Enter course" value={course} onChange={c => this.setState({ course: c.target.value })} />
+          <div>
+            <Form.Control id="searchbar" type="text" placeholder="Enter course" value={course} onChange={c => this.setState({ course: c.target.value })} isInvalid={!!error} />
+            <Form.Control.Feedback type="invalid">
+              {error}
+            </Form.Control.Feedback>
+          </div>
           <button id="searchArrow" type="submit" onClick={this.searchCourse}><SVG src={Arrow} /></button>
         </div>
       </div>
