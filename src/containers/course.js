@@ -5,6 +5,8 @@ import SVG from 'react-inlinesvg';
 import Arrow from '../img/arrow.svg';
 import '../style.scss';
 
+import { professorTerms, courseProfessors } from '../constants/dictionary';
+
 class Course extends React.Component {
   constructor(props) {
     super(props);
@@ -12,6 +14,11 @@ class Course extends React.Component {
     this.state = {
       course: '',
       name: localStorage.getItem('courseName'),
+      term: '',
+      professor: '',
+      question: '',
+      sidebar: {},
+      reviews: [],
     };
   }
 
@@ -33,11 +40,64 @@ class Course extends React.Component {
   };
 
   updateFilter = (e) => {
-    console.log(this.inputQuestion);
+    console.log(e.target.name);
+    console.log(e.target.value);
+    if (e.target.name === 'sidebar') {
+      this.updateSidebar(e);
+    } else {
+      this.setState({ [e.target.name]: e.target.value });
+    }
+    // TODO: do axios call with all the filters from the state and then update reviews in state
+  }
+
+  updateSidebar = (e) => {
+    this.setState({ sidebar: { [e.target.id]: e.target.value } });
+    console.log(this.state);
+  }
+
+  // TODO: update this to match the data
+  loadReviews = () => {
+    const { reviews } = this.state;
+
+    return reviews.map((review) => {
+      return (
+        <ListGroup.Item>
+          {`${review.term} / ${review.professor} / ${review.question}`}
+          <p id="comment"> {review.text} </p>
+        </ListGroup.Item>
+      );
+    });
+  }
+
+  loadProfessors = () => {
+    const { name, term, professor } = this.state;
+    console.log(professor);
+    if (term === '') {
+      return courseProfessors(name).map((prof) => {
+        return (<option value={prof}>{prof}</option>);
+      });
+    } else {
+      return (<option value={professor}>{professor}</option>);
+    }
+  }
+
+  loadTerms = () => {
+    const { name, professor } = this.state;
+    if (professor === '') {
+      return professorTerms(name, 'all').map((term) => {
+        return (<option value={term}>{term}</option>);
+      });
+    } else {
+      return professorTerms(name, professor).map((term) => {
+        return (<option value={term}>{term}</option>);
+      });
+    }
   }
 
   render() {
-    const { course, name } = this.state;
+    const {
+      course, name, professor, term, question,
+    } = this.state;
     return (
       <div id="courseMain">
         <div className="rFlex">
@@ -50,30 +110,32 @@ class Course extends React.Component {
         <h1 id="courseName"> {name} </h1>
         <Form id="left">
           <Form.Row>
-            <Form.Group as={Col} controlId="term">
-              <Form.Label>Term</Form.Label>
-              <Form.Control as="select">
-                <option>All</option>
-                <option>...</option>
-              </Form.Control>
-            </Form.Group>
-
             <Form.Group as={Col} controlId="professor">
               <Form.Label>Professor</Form.Label>
-              <Form.Control as="select">
-                <option>All</option>
-                <option>...</option>
+              <Form.Control as="select" name="professor" onChange={this.updateFilter} value={professor}>
+                <option value="">All</option>
+                {this.loadProfessors()}
               </Form.Control>
             </Form.Group>
 
-            <Form.Group as={Col} controlId="question">
+            <Form.Group as={Col} controlId="term">
+              <Form.Label>Term</Form.Label>
+              <Form.Control as="select" name="term" onChange={this.updateFilter} value={term}>
+                {<option value="">All</option>}
+                {this.loadTerms()}
+              </Form.Control>
+            </Form.Group>
+
+            <Form.Group as={Col} controlId="question" value={question}>
               <Form.Label>Question</Form.Label>
               <Form.Control as="select"
                 onChange={this.updateFilter}
-                inputRef={(question) => { this.inputQuestion = question; }}
+                name="question"
               >
-                <option value="0">All</option>
-                <option value="1">...</option>
+                <option value={null}>All</option>
+                <option value="0">Methods of Evaluation</option>
+                <option value="1">Class Structure</option>
+                <option value="2">Academic Experience</option>
               </Form.Control>
             </Form.Group>
           </Form.Row>
@@ -85,127 +147,112 @@ class Course extends React.Component {
                 16S / Farid / Experience
                 <p id="comment"> this is the review </p>
               </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
-              <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item>
+              {this.loadReviews()}
             </ListGroup>
           </div>
           <div id="sidebar">
             <Form>
-              <Form.Group>
+              <Form.Group onChange={this.updateFilter}>
                 <Form.Label>Keyword</Form.Label>
                 <Col>
                   <Form.Check
                     type="radio"
                     label="Workload"
                     name="sidebar"
-                    id="workloadRadio"
+                    id="entity"
+                    value="workload"
                   />
                   <Form.Check
                     type="radio"
                     label="Difficulty"
                     name="sidebar"
-                    id="difficultyRadio"
+                    id="entity"
+                    value="difficulty"
                   />
                   <Form.Check
                     type="radio"
                     label="Evaluation"
                     name="sidebar"
-                    id="evaluationRadio"
+                    id="entity"
+                    value="evaluation"
                   />
                   <Form.Check
                     type="radio"
                     label="Homework"
                     name="sidebar"
-                    id="homeworkRadio"
+                    id="entity"
+                    value="homework"
                   />
                   <Form.Check
                     type="radio"
                     label="Class Structure"
                     name="sidebar"
-                    id="structureRadio"
+                    id="entity"
+                    value="structure"
                   />
                   <Form.Check
                     type="radio"
                     label="Experience"
                     name="sidebar"
-                    id="experienceRadio"
+                    id="entity"
+                    value="experience"
                   />
                   <Form.Check
                     type="radio"
                     label="Feedback"
                     name="sidebar"
-                    id="feedbackRadio"
+                    id="entity"
+                    value="feedback"
                   />
                 </Col>
               </Form.Group>
-              <Form.Group>
+              <Form.Group onChange={this.updateFilter}>
                 <Form.Label>Sentiment</Form.Label>
                 <Col>
                   <Form.Check
                     type="radio"
                     label="Positive"
                     name="sidebar"
-                    id="positiveRadio"
+                    id="sentiment"
+                    value="positive"
                   />
                   <Form.Check
                     type="radio"
                     label="Negative"
                     name="sidebar"
-                    id="negativeRadio"
+                    id="sentiment"
+                    value="negative"
                   />
                 </Col>
               </Form.Group>
-              <Form.Group>
+              <Form.Group onChange={this.updateFilter}>
                 <Form.Label>Frequency of</Form.Label>
                 <Col>
                   <Form.Check
                     type="radio"
                     label="Evaluation"
                     name="sidebar"
-                    id="evaluationFrequencyRadio"
+                    id="frequency"
+                    value="evaluation"
                   />
                   <Form.Check
                     type="radio"
                     label="Homework"
                     name="sidebar"
-                    id="homeworkFrequencyRadio"
+                    id="frequency"
+                    value="homework"
                   />
                 </Col>
               </Form.Group>
-              <Form.Group>
+              <Form.Group onChange={this.updateFilter}>
                 <Form.Label>Amount of</Form.Label>
                 <Col>
                   <Form.Check
                     type="radio"
                     label="Class Structure"
                     name="sidebar"
-                    id="structureAmountRadio"
+                    id="amount"
+                    value="structure"
                   />
                 </Col>
               </Form.Group>

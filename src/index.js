@@ -8,6 +8,8 @@ import { Provider } from 'react-redux';
 import { createStore, applyMiddleware, compose } from 'redux';
 
 import reducers from './reducers';
+import './constants/dictionary';
+
 
 import App from './components/app';
 
