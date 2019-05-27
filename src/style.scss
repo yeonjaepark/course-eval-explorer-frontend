@@ -1,17 +1,107 @@
-body, html {
-    font-family: "Roboto", sans-serif;
-    background: linear-gradient(to bottom, #eeffcc 0%, #ffff99 40%, #cce6ff 100%);
-    height: 100%;
+body {
+  font-family: "Roboto", sans-serif;
+  background: linear-gradient(to bottom, #3B4371 0%, #FF9C5B 100%);
+  height: 100%;
+  color: white;
 }
 
-.logo {
-    background-image: url('img/startpack-logo.jpg');
-    width: 100px;
-    height: 100px;
-    background-repeat: no-repeat;
-    background-size: contain;
+h1 {
+  font-family: 'Contrail One', sans-serif;
 }
 
 .active {
-    color: pink;
-  }
+  color: pink;
+}
+
+#site_name {
+  font-size: 80px;
+  margin-bottom: 40px;
+}
+
+#landing_text {
+  font-size: 36px;
+  padding: 0;
+  margin: 0;
+  margin-right: 30px;
+}
+
+#landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#search {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+#searchbar {
+  width: 300px !important;
+  margin-right: 25px;
+}
+
+#searchbar_long {
+  width: 70vw !important;
+  margin-right: 30px;
+}
+
+#searchArrow {
+  background-color: transparent;
+  border: none;
+  overflow: hidden;
+  outline: none;
+}
+
+#courseArrow {
+  background-color: transparent;
+  border: none;
+  overflow: hidden;
+  outline: none;
+  margin-top: 25px;
+}
+
+#courseMain {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 50px 80px 50px 80px;
+}
+
+#courseName {
+  font-size: 60px;
+  margin-top: 40px;
+  margin-bottom: 20px;
+}
+
+#left {
+  width: 70vw !important;
+}
+
+#sidebar {
+  margin-left: 35px;
+  margin-top: 20px;
+  background-color: white;
+  padding: 20px 25px 10px 30px;
+  color: #837676;
+  border-radius: 5px;
+  height: 510px;
+}
+
+#reviews {
+  margin-top: 20px;
+  color: #837676;
+}
+
+#comment {
+  padding-left: 20px;
+}
+
+.rFlex {
+  display: flex;
+  flex-direction: row;
+}
