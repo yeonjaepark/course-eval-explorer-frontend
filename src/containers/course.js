@@ -17,6 +17,7 @@ class Course extends React.Component {
     super(props);
 
     this.state = {
+      courseNum: '',
       course: '',
       error: '',
       name: '',
@@ -60,7 +61,7 @@ class Course extends React.Component {
     if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
       this.setState({ error: 'Please enter a valid course' });
     } else {
-      this.setState({ error: '' }, this.fetchReviews);
+      this.setState({ error: '', courseNum }, this.fetchReviews);
       history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
     }
   };
@@ -78,7 +79,7 @@ class Course extends React.Component {
     console.log(this.state);
     axios.post('http://localhost:9090/api/reviews', {
       filters: {
-        course: this.state.course,
+        courseNum: this.state.courseNum,
         name: this.state.name,
         term: this.state.term,
         professor: this.state.professor,
