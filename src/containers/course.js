@@ -37,15 +37,14 @@ class Course extends React.Component {
   componentDidMount(props) {
     const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
     const splittedArray = this.props.match.params.courseId.match(regex);
-    this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}` });
-    this.fetchReviews();
+    this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}`, courseNum: parseInt(splittedArray[1], 10) }, this.fetchReviews());
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.match.params.courseId !== this.props.match.params.courseId) {
       const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
       const splittedArray = nextProps.match.params.courseId.match(regex);
-      this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}` });
+      this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}`, courseNum: parseInt(splittedArray[1], 10) }, this.fetchReviews());
     }
   }
 
@@ -64,7 +63,20 @@ class Course extends React.Component {
     if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
       this.setState({ error: 'Please enter a valid course' });
     } else {
-      this.setState({ error: '', courseNum, course: '' }, this.fetchReviews);
+      this.clearSidebar();
+      this.setState({
+        error: '',
+        courseNum,
+        course: '',
+        term: '',
+        professor: '',
+        question: '',
+        sidebar: {},
+        reviews: [],
+        keywords: [],
+        loading: false,
+        keywordSelected: false,
+      }, this.fetchReviews);
       history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
     }
   };
@@ -74,12 +86,13 @@ class Course extends React.Component {
     if (width > 0) {
       return new Array(width + (/\./.test(number) ? 2 : 1)).join('0') + number;
     }
+
     return `${number}`; // always return a string
   }
 
   fetchReviews = () => {
-    console.log('logging state');
-    console.log(this.state);
+    const { keywordSelected, keywords } = this.state;
+    console.log(`testing course number: ${this.state.courseNum}`);
     this.setState({ loading: true });
     axios.post('http://localhost:9090/api/reviews', {
       filters: {
@@ -92,9 +105,7 @@ class Course extends React.Component {
       },
     })
       .then((response) => {
-        console.log(response);
-        console.log(this.state);
-        this.setState({ reviews: response.data.results, keywords: response.data.keywords || [], loading: false });
+        this.setState({ reviews: response.data.results, keywords: keywordSelected ? keywords : response.data.keywords || [], loading: false });
       })
       .catch((error) => {
         console.log(error);
@@ -102,13 +113,14 @@ class Course extends React.Component {
   }
 
   updateFilter = (e) => {
-    console.log(e.target.name);
-    console.log(e.target.value);
     if (e.target.name === 'sidebar') {
+      if (e.target.id === 'keyword') {
+        this.setState({ keywordSelected: true });
+      }
       this.setState({ sidebar: { [e.target.id]: e.target.value } }, this.fetchReviews);
     } else {
-      console.log(`updating state ${e.target.name} ${e.target.value}`);
-      this.setState({ [e.target.name]: e.target.value }, this.fetchReviews);
+      this.clearSidebar();
+      this.setState({ [e.target.name]: e.target.value, sidebar: {} }, this.fetchReviews);
     }
   }
 
@@ -119,7 +131,6 @@ class Course extends React.Component {
   // TODO: update this to match the data
   loadReviews = () => {
     const { reviews } = this.state;
-    console.log('reviews');
     return reviews.map((review) => {
       return (
         <ListGroup.Item className={this.getSentimentClass(review)}>
@@ -132,7 +143,6 @@ class Course extends React.Component {
 
   loadProfessors = () => {
     const { name, term, professor } = this.state;
-    console.log(professor);
     if (term === '') {
       return courseProfessors(name).map((prof) => {
         return (<option value={prof}>{prof}</option>);
@@ -181,9 +191,13 @@ class Course extends React.Component {
     );
   }
 
+  clearSidebar = () => {
+    this.myFormRef.reset();
+  }
+
   render() {
     const {
-      course, name, professor, term, question, error, loading,
+      course, name, professor, term, question, error, loading, keywordSelected,
     } = this.state;
     const numPositiveReviews = this.state.reviews.filter((review) => {
       return review.enriched_text.sentiment.document.label === 'positive';
@@ -275,11 +289,11 @@ class Course extends React.Component {
             }
           </div>
           <div id="sidebar">
-            <Form>
+            <Form ref={(el) => { this.myFormRef = el; }}>
               <Form.Group onChange={this.updateFilter}>
                 <Form.Label>Keywords</Form.Label>
                 <Col>
-                  {loading ? this.loadSpinner('miniSpinner', 'secondary', '') : this.loadKeywords()}
+                  {loading && !keywordSelected ? this.loadSpinner('miniSpinner', 'secondary', '') : this.loadKeywords()}
                 </Col>
               </Form.Group>
               <Form.Group onChange={this.updateFilter}>
