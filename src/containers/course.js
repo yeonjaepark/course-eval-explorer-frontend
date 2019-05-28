@@ -1,5 +1,7 @@
 import React from 'react';
-import { Form, Col, ListGroup } from 'react-bootstrap';
+import {
+  Form, Col, ListGroup, Spinner,
+} from 'react-bootstrap';
 import axios from 'axios';
 import SVG from 'react-inlinesvg';
 import Arrow from '../img/arrow.svg';
@@ -26,6 +28,8 @@ class Course extends React.Component {
       question: '',
       sidebar: {},
       reviews: [],
+      keywords: [],
+      loading: false,
     };
   }
 
@@ -56,12 +60,10 @@ class Course extends React.Component {
     const courseName = splittedArray[0].toUpperCase();
     const courseNum = parseInt(splittedArray[1], 10);
 
-    console.log(courseNum);
-
     if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
       this.setState({ error: 'Please enter a valid course' });
     } else {
-      this.setState({ error: '', courseNum }, this.fetchReviews);
+      this.setState({ error: '', courseNum, course: '' }, this.fetchReviews);
       history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
     }
   };
@@ -77,6 +79,7 @@ class Course extends React.Component {
   fetchReviews = () => {
     console.log('logging state');
     console.log(this.state);
+    this.setState({ loading: true });
     axios.post('http://localhost:9090/api/reviews', {
       filters: {
         courseNum: this.state.courseNum,
@@ -90,7 +93,7 @@ class Course extends React.Component {
       .then((response) => {
         console.log(response);
         console.log(this.state);
-        this.setState({ reviews: response.data.results });
+        this.setState({ reviews: response.data.results, loading: false });
       })
       .catch((error) => {
         console.log(error);
@@ -151,9 +154,35 @@ class Course extends React.Component {
     }
   }
 
+  loadKeywords = () => {
+    const { keywords } = this.state;
+
+    return keywords.map((word) => {
+      return (
+        <Form.Check
+          type="radio"
+          label={`${word.key} (${word.matching_results})`}
+          name="sidebar"
+          id="keyword"
+          value={word.key}
+        />
+      );
+    });
+  }
+
+  loadSpinner = (styling, color, divStyle) => {
+    return (
+      <div className={divStyle}>
+        <Spinner animation="border" role="status" variant={color} id={styling}>
+          <span className="sr-only">Loading...</span>
+        </Spinner>
+      </div>
+    );
+  }
+
   render() {
     const {
-      course, name, professor, term, question, error,
+      course, name, professor, term, question, error, loading,
     } = this.state;
     return (
       <div id="courseMain">
@@ -205,17 +234,38 @@ class Course extends React.Component {
         <div className="rFlex">
           <div id="left">
             <ListGroup id="reviews">
-              {/* <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item> */}
-              {this.loadReviews()}
+              {loading ? this.loadSpinner('loader', 'light', 'center') : this.loadReviews()}
             </ListGroup>
           </div>
           <div id="sidebar">
             <Form>
               <Form.Group onChange={this.updateFilter}>
-                <Form.Label>Keyword</Form.Label>
+                <Form.Label>Keywords</Form.Label>
+                <Col>
+                  {loading ? this.loadSpinner('miniSpinner', 'secondary', '') : this.loadKeywords()}
+                </Col>
+              </Form.Group>
+              <Form.Group onChange={this.updateFilter}>
+                <Form.Label>Sentiment</Form.Label>
+                <Col>
+                  <Form.Check
+                    type="radio"
+                    label="Positive"
+                    name="sidebar"
+                    id="sentiment"
+                    value="positive"
+                  />
+                  <Form.Check
+                    type="radio"
+                    label="Negative"
+                    name="sidebar"
+                    id="sentiment"
+                    value="negative"
+                  />
+                </Col>
+              </Form.Group>
+              <Form.Group onChange={this.updateFilter}>
+                <Form.Label>Relevance</Form.Label>
                 <Col>
                   <Form.Check
                     type="radio"
@@ -265,56 +315,6 @@ class Course extends React.Component {
                     name="sidebar"
                     id="entity"
                     value="Feedback"
-                  />
-                </Col>
-              </Form.Group>
-              <Form.Group onChange={this.updateFilter}>
-                <Form.Label>Sentiment</Form.Label>
-                <Col>
-                  <Form.Check
-                    type="radio"
-                    label="Positive"
-                    name="sidebar"
-                    id="sentiment"
-                    value="positive"
-                  />
-                  <Form.Check
-                    type="radio"
-                    label="Negative"
-                    name="sidebar"
-                    id="sentiment"
-                    value="negative"
-                  />
-                </Col>
-              </Form.Group>
-              <Form.Group onChange={this.updateFilter}>
-                <Form.Label>Frequency of</Form.Label>
-                <Col>
-                  <Form.Check
-                    type="radio"
-                    label="Evaluation"
-                    name="sidebar"
-                    id="frequency"
-                    value="evaluation"
-                  />
-                  <Form.Check
-                    type="radio"
-                    label="Homework"
-                    name="sidebar"
-                    id="frequency"
-                    value="homework"
-                  />
-                </Col>
-              </Form.Group>
-              <Form.Group onChange={this.updateFilter}>
-                <Form.Label>Amount of</Form.Label>
-                <Col>
-                  <Form.Check
-                    type="radio"
-                    label="Class Structure"
-                    name="sidebar"
-                    id="amount"
-                    value="structure"
                   />
                 </Col>
               </Form.Group>
