@@ -89,7 +89,7 @@ h1 {
   padding: 20px 25px 10px 30px;
   color: #837676;
   border-radius: 5px;
-  height: 550px;
+  height: 100%;
 }
 
 #reviews {
@@ -108,7 +108,7 @@ h1 {
 }
 
 #miniSpinner {
-  
+
 }
 
 .center {
@@ -124,6 +124,14 @@ h1 {
   flex-direction: row;
 }
 
+.cFlex {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0px 20px 0px 20px;
+}
+
 .review-positive {
   background-color: rgb(228, 236, 228);
 }
@@ -132,4 +140,10 @@ h1 {
 }
 .review-neutral {
   background-color: white;
+}
+.positive-text {
+  color: #90e582;
+}
+.negative-text {
+  color: #e06262;
 }

@@ -30,6 +30,7 @@ class Course extends React.Component {
       reviews: [],
       keywords: [],
       loading: false,
+      keywordSelected: false,
     };
   }
 
@@ -93,7 +94,7 @@ class Course extends React.Component {
       .then((response) => {
         console.log(response);
         console.log(this.state);
-        this.setState({ reviews: response.data.results, loading: false });
+        this.setState({ reviews: response.data.results, keywords: response.data.keywords || [], loading: false });
       })
       .catch((error) => {
         console.log(error);
@@ -184,6 +185,17 @@ class Course extends React.Component {
     const {
       course, name, professor, term, question, error, loading,
     } = this.state;
+    const numPositiveReviews = this.state.reviews.filter((review) => {
+      return review.enriched_text.sentiment.document.label === 'positive';
+    }).length;
+    const numNegativeReviews = this.state.reviews.filter((review) => {
+      return review.enriched_text.sentiment.document.label === 'negative';
+    }).length;
+    const numNeutralReviews = this.state.reviews.filter((review) => {
+      return review.enriched_text.sentiment.document.label === 'neutral';
+    }).length;
+    const numReviews = this.state.reviews.length;
+
     return (
       <div id="courseMain">
         <div className="rFlex">
@@ -233,9 +245,34 @@ class Course extends React.Component {
         </Form>
         <div className="rFlex">
           <div id="left">
-            <ListGroup id="reviews">
-              {loading ? this.loadSpinner('loader', 'light', 'center') : this.loadReviews()}
-            </ListGroup>
+            {
+              loading ? this.loadSpinner('loader', 'light', 'center') : (
+                <ListGroup id="reviews">
+                  <ListGroup.Item>
+                    <div className="rFlex center">
+                      <div className="cFlex">
+                        <span> TOTAL </span>
+                        <span> {numReviews} </span>
+                      </div>
+                      <div className="cFlex positive-text">
+                        <span> POSITIVE </span>
+                        <span> {numPositiveReviews} </span>
+                      </div>
+                      <div className="cFlex">
+                        <span> NEUTRAL </span>
+                        <span> {numNeutralReviews} </span>
+                      </div>
+                      <div className="cFlex negative-text">
+                        <span> NEGATIVE </span>
+                        <span> {numNegativeReviews} </span>
+                      </div>
+                    </div>
+
+                  </ListGroup.Item>
+                  {this.loadReviews()}
+                </ListGroup>
+              )
+            }
           </div>
           <div id="sidebar">
             <Form>
