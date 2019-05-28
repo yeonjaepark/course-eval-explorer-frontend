@@ -31,7 +31,7 @@ class Home extends React.Component {
     if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
       this.setState({ error: 'Please enter a valid course' });
     } else {
-      history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
+      history.push(`/course/${courseName}${this.zeroFill(courseNum)}`, { num: courseNum });
     }
   };
 

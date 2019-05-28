@@ -37,14 +37,15 @@ class Course extends React.Component {
   componentDidMount(props) {
     const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
     const splittedArray = this.props.match.params.courseId.match(regex);
-    this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}`, courseNum: parseInt(splittedArray[1], 10) }, this.fetchReviews());
+    console.log('remounting');
+    this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}`, courseNum: parseInt(splittedArray[1], 10) }, this.fetchReviews);
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.match.params.courseId !== this.props.match.params.courseId) {
       const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
       const splittedArray = nextProps.match.params.courseId.match(regex);
-      this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}`, courseNum: parseInt(splittedArray[1], 10) }, this.fetchReviews());
+      this.setState({ courseNum: parseInt(splittedArray[1], 10), name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}` }, this.fetchReviews);
     }
   }
 
@@ -76,8 +77,7 @@ class Course extends React.Component {
         keywords: [],
         loading: false,
         keywordSelected: false,
-      }, this.fetchReviews);
-      history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
+      }, history.push(`/course/${courseName}${this.zeroFill(courseNum)}`));
     }
   };
 
