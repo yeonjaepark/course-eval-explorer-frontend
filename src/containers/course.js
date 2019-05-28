@@ -155,6 +155,17 @@ class Course extends React.Component {
     const {
       course, name, professor, term, question, error,
     } = this.state;
+    const numPositiveReviews = this.state.reviews.filter((review) => {
+      return review.enriched_text.sentiment.document.label === 'positive';
+    }).length;
+    const numNegativeReviews = this.state.reviews.filter((review) => {
+      return review.enriched_text.sentiment.document.label === 'negative';
+    }).length;
+    const numNeutralReviews = this.state.reviews.filter((review) => {
+      return review.enriched_text.sentiment.document.label === 'neutral';
+    }).length;
+    const numReviews = this.state.reviews.length;
+
     return (
       <div id="courseMain">
         <div className="rFlex">
@@ -204,11 +215,10 @@ class Course extends React.Component {
         </Form>
         <div className="rFlex">
           <div id="left">
+            <div><span>{numReviews} total </span><span className="positive-text">{numPositiveReviews} positive </span>
+              <span className="negative-text">{numNegativeReviews} negative</span> <span>{numNeutralReviews} neutral</span>
+            </div>
             <ListGroup id="reviews">
-              {/* <ListGroup.Item>
-                16S / Farid / Experience
-                <p id="comment"> this is the review </p>
-              </ListGroup.Item> */}
               {this.loadReviews()}
             </ListGroup>
           </div>
