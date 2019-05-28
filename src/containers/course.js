@@ -1,12 +1,17 @@
 import React from 'react';
 import { Form, Col, ListGroup } from 'react-bootstrap';
-// import axios from 'axios';
+import axios from 'axios';
 import SVG from 'react-inlinesvg';
 import Arrow from '../img/arrow.svg';
 import '../style.scss';
 
 import { professorTerms, courseProfessors } from '../constants/dictionary';
 
+const QUESTION_MAP = {
+  0: 'Methods of Evaluation',
+  1: 'Class Structure',
+  2: 'Academic Experience',
+};
 class Course extends React.Component {
   constructor(props) {
     super(props);
@@ -27,6 +32,7 @@ class Course extends React.Component {
     const regex = new RegExp('([0-9]+)|([a-zA-Z]+)', 'g');
     const splittedArray = this.props.match.params.courseId.match(regex);
     this.setState({ name: `${splittedArray[0].toUpperCase()} ${this.zeroFill(parseInt(splittedArray[1], 10))}` });
+    this.fetchReviews();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -54,7 +60,7 @@ class Course extends React.Component {
     if (courseName !== 'COSC' || !possibleCourseNum.includes(courseNum)) {
       this.setState({ error: 'Please enter a valid course' });
     } else {
-      this.setState({ course: '', error: '' });
+      this.setState({ error: '' }, this.fetchReviews);
       history.push(`/course/${courseName}${this.zeroFill(courseNum)}`);
     }
   };
@@ -67,30 +73,52 @@ class Course extends React.Component {
     return `${number}`; // always return a string
   }
 
+  fetchReviews = () => {
+    console.log('logging state');
+    console.log(this.state);
+    axios.post('http://localhost:9090/api/reviews', {
+      filters: {
+        course: this.state.course,
+        name: this.state.name,
+        term: this.state.term,
+        professor: this.state.professor,
+        question: this.state.question,
+        sidebar: this.state.sidebar,
+      },
+    })
+      .then((response) => {
+        console.log(response);
+        console.log(this.state);
+        this.setState({ reviews: response.data.results });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
   updateFilter = (e) => {
     console.log(e.target.name);
     console.log(e.target.value);
     if (e.target.name === 'sidebar') {
-      this.updateSidebar(e);
+      this.setState({ sidebar: { [e.target.id]: e.target.value } }, this.fetchReviews);
     } else {
-      this.setState({ [e.target.name]: e.target.value });
+      console.log(`updating state ${e.target.name} ${e.target.value}`);
+      this.setState({ [e.target.name]: e.target.value }, this.fetchReviews);
     }
-    // TODO: do axios call with all the filters from the state and then update reviews in state
   }
 
-  updateSidebar = (e) => {
-    this.setState({ sidebar: { [e.target.id]: e.target.value } });
-    console.log(this.state);
+  getSentimentClass = (review) => {
+    return `review-${review.enriched_text.sentiment.document.label}`;
   }
 
   // TODO: update this to match the data
   loadReviews = () => {
     const { reviews } = this.state;
-
+    console.log('reviews');
     return reviews.map((review) => {
       return (
-        <ListGroup.Item>
-          {`${review.term} / ${review.professor} / ${review.question}`}
+        <ListGroup.Item className={this.getSentimentClass(review)}>
+          {`${review.term} / ${review.professor} / ${QUESTION_MAP[review.questionNum]}`}
           <p id="comment"> {review.text} </p>
         </ListGroup.Item>
       );
@@ -176,10 +204,10 @@ class Course extends React.Component {
         <div className="rFlex">
           <div id="left">
             <ListGroup id="reviews">
-              <ListGroup.Item>
+              {/* <ListGroup.Item>
                 16S / Farid / Experience
                 <p id="comment"> this is the review </p>
-              </ListGroup.Item>
+              </ListGroup.Item> */}
               {this.loadReviews()}
             </ListGroup>
           </div>
@@ -193,49 +221,49 @@ class Course extends React.Component {
                     label="Workload"
                     name="sidebar"
                     id="entity"
-                    value="workload"
+                    value="Workload"
                   />
                   <Form.Check
                     type="radio"
                     label="Difficulty"
                     name="sidebar"
                     id="entity"
-                    value="difficulty"
+                    value="Difficulty"
                   />
                   <Form.Check
                     type="radio"
                     label="Evaluation"
                     name="sidebar"
                     id="entity"
-                    value="evaluation"
+                    value="Evaluation"
                   />
                   <Form.Check
                     type="radio"
-                    label="Homework"
+                    label="Professor"
                     name="sidebar"
                     id="entity"
-                    value="homework"
+                    value="Professor"
                   />
                   <Form.Check
                     type="radio"
                     label="Class Structure"
                     name="sidebar"
                     id="entity"
-                    value="structure"
+                    value="Structure"
                   />
                   <Form.Check
                     type="radio"
                     label="Experience"
                     name="sidebar"
                     id="entity"
-                    value="experience"
+                    value="Experience"
                   />
                   <Form.Check
                     type="radio"
                     label="Feedback"
                     name="sidebar"
                     id="entity"
-                    value="feedback"
+                    value="Feedback"
                   />
                 </Col>
               </Form.Group>

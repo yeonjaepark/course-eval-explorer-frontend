@@ -89,7 +89,7 @@ h1 {
   padding: 20px 25px 10px 30px;
   color: #837676;
   border-radius: 5px;
-  height: 510px;
+  height: 550px;
 }
 
 #reviews {
@@ -104,4 +104,14 @@ h1 {
 .rFlex {
   display: flex;
   flex-direction: row;
+}
+
+.review-positive {
+  background-color: rgb(228, 236, 228);
+}
+.review-negative {
+  background-color: rgb(230, 215, 215);
+}
+.review-neutral {
+  background-color: white;
 }
